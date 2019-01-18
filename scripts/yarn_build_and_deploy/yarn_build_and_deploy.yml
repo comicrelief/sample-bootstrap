@@ -1,0 +1,30 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: comicrelief/php-drupal, tag: "latest"}
+
+inputs:
+  - name: repository
+    path: repository
+  # - name: drupal-concourse-tools
+  #   path: build-tools
+
+caches:
+  - path: build-tools/node_modules
+  - path: repository/node_modules
+
+params:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  S3_BUCKET_PATH:
+  DIRECTORY:
+
+run:
+  path: sh
+  args:
+   - -c
+   - |
+     ./scripts/yarn_build_and_deploy/yarn_build_and_deploy.sh
+  dir: build-tools
