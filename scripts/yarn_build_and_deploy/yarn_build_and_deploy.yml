@@ -8,8 +8,8 @@ image_resource:
 inputs:
   - name: repository
     path: repository
-  # - name: drupal-concourse-tools
-  #   path: build-tools
+  - name: bootstrap
+    path: build-tools
 
 caches:
   - path: build-tools/node_modules
