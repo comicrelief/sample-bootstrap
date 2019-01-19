@@ -1,0 +1,31 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source: {repository: comicrelief/php-drupal, tag: "latest"}
+
+inputs:
+  - name: repository
+    path: repository
+  - name: bootstrap
+    path: build-tools
+
+caches:
+  - path: build-tools/node_modules
+
+params:
+  NPM_COMMAND:
+  AWS_ACCESS_KEY_ID:
+  AWS_SECRET_ACCESS_KEY:
+  BROWSERSTACK_USERNAME:
+  BROWSERSTACK_ACCESS_KEY:
+  BASE_URL:
+
+run:
+  path: sh
+  args:
+   - -c
+   - |
+     ./scripts/yarn_run/yarn_run.sh
+  dir: build-tools
