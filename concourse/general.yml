@@ -113,8 +113,15 @@ jobs:
           S3_BUCKET_PATH: ((bucket_production))
           DIRECTORY: 'build'
           REACT_APP_ENDPOINT_URL: ((paths_giftaid_production))
+    on_success:
+      put: slack-alert
+      params:
+        channel: 'concourse-sandbox'
+        icon_url: https://avatars1.githubusercontent.com/u/7809479?v=3&s=200
+        text: |
+           >>> Deployment to production successful
 
-  - name: lighthouse-daily
+  - name: feature-daily
     serial: true
     plan:
       - aggregate:
@@ -122,21 +129,15 @@ jobs:
           trigger: true
         - get: spa-giftaid
         - get: bootstrap
-      - task: 'Run lighthouse on production environment'
-        file: bootstrap/scripts/lighthouse/lighthouse.yml
+      - task: 'Run feature tests daily on production environment'
+        file: bootstrap/scripts/cypress/cypress.yml
         input_mapping:
-          repository: giftaid-spa
+          repository: spa-giftaid
           build-tools: bootstrap
-        params:
-          LIGHTHOUSE_BASE_URL: ((paths_giftaid_production))
-          AWS_ACCESS_KEY_ID: ((aws_access_key))
-          AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
-          S3_BUCKET_PATH: ((bucket_lighthouse))
-          SITE: 'example-site'
     on_failure:
       put: slack-alert
       params:
         channel: 'concourse-sandbox'
         icon_url: https://avatars1.githubusercontent.com/u/7809479?v=3&s=200
         text: |
-           >>> Daily lighthouse tests have failed.
+           >>> Daily feature tests on production have failed.
