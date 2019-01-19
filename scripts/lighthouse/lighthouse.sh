@@ -2,6 +2,9 @@
 
 [ -f ~/.bashrc ] && . ~/.bashrc
 
+# Changing path to project master
+cd ../repository
+
 # Install NPM packages
 npm install
 
