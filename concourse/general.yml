@@ -120,7 +120,7 @@ jobs:
       - aggregate:
         - get: daily-trigger
           trigger: true
-        - get: giftaid-spa
+        - get: spa-giftaid
         - get: bootstrap
       - task: 'Run lighthouse on production environment'
         file: bootstrap/scripts/lighthouse/lighthouse.yml
