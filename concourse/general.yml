@@ -18,3 +18,125 @@ resource_types:
     source:
       repository: cfcommunity/slack-notification-resource
       tag: latest
+
+# --------------------------------------------------------------------------------------------------
+# Resources
+# --------------------------------------------------------------------------------------------------
+resources:
+
+  - name: bootstrap
+    type: git
+    source:
+      uri: git@github.com:comicrelief/sample-bootstrap.git
+      branch: master
+      depth: 0
+      private_key: ((github_deploy_key_concourse))
+
+  - name: spa-giftaid
+    type: git
+    source:
+      uri: git@github.com:comicrelief/giftaid-react.git
+      branch: master
+      depth: 0
+      private_key: ((github_deploy_key_concourse))
+
+  - name: daily-trigger
+    type: cron-resource
+    source:
+      expression: "0 10 * * *"
+
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: ((slack_channel_hook_url))
+
+
+# --------------------------------------------------------------------------------------------------
+# Jobs
+# --------------------------------------------------------------------------------------------------
+jobs:
+
+  - name: deploy-staging
+    plan:
+      - aggregate:
+        - get: spa-giftaid
+          trigger: true
+        - get: bootstrap
+      - task: 'Deploy to staging'
+        file: bootstrap/scripts/yarn_build_and_deploy/yarn_build_and_deploy.yml
+        input_mapping:
+          repository: spa-giftaid
+          build-tools: bootstrap
+        params:
+          AWS_ACCESS_KEY_ID: ((aws_access_key))
+          AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
+          S3_BUCKET_PATH: ((bucket_staging))
+          DIRECTORY: 'build'
+          REACT_APP_ENDPOINT_URL: ((paths_giftaid_staging))
+
+  - name: feature-test
+    serial: true
+    plan:
+      - aggregate:
+        - get: spa-giftaid
+          passed: [deploy-staging]
+          trigger: true
+        - get: bootstrap
+      - task: 'Run feature tests'
+        file: bootstrap/scripts/cypress/cypress.yml
+        input_mapping:
+          repository: spa-giftaid
+          build-tools: bootstrap
+    on_failure:
+      put: slack-alert
+      params:
+        channel: 'concourse-sandbox'
+        icon_url: https://avatars1.githubusercontent.com/u/7809479?v=3&s=200
+        text: |
+           >>> Feature tests have failed. Please check: (<https://ci.sandbox.comicrelief.com/teams/main/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|Task output>)
+
+  - name: deploy-production
+    plan:
+      - aggregate:
+        - get: spa-giftaid
+          passed: [feature-test]
+          trigger: true
+        - get: bootstrap
+      - task: 'Deploy to production'
+        file: bootstrap/scripts/yarn_build_and_deploy/yarn_build_and_deploy.yml
+        input_mapping:
+          repository: spa-giftaid
+          build-tools: bootstrap
+        params:
+          AWS_ACCESS_KEY_ID: ((aws_access_key))
+          AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
+          S3_BUCKET_PATH: ((bucket_production))
+          DIRECTORY: 'build'
+          REACT_APP_ENDPOINT_URL: ((paths_giftaid_production))
+
+  - name: lighthouse-daily
+    serial: true
+    plan:
+      - aggregate:
+        - get: daily-trigger
+          trigger: true
+        - get: giftaid-spa
+        - get: bootstrap
+      - task: 'Run lighthouse on production environment'
+        file: bootstrap/scripts/lighthouse/lighthouse.yml
+        input_mapping:
+          repository: giftaid-spa
+          build-tools: bootstrap
+        params:
+          LIGHTHOUSE_BASE_URL: ((paths_giftaid_production))
+          AWS_ACCESS_KEY_ID: ((aws_access_key))
+          AWS_SECRET_ACCESS_KEY: ((aws_secret_key))
+          S3_BUCKET_PATH: ((bucket_lighthouse))
+          SITE: 'example-site'
+    on_failure:
+      put: slack-alert
+      params:
+        channel: 'concourse-sandbox'
+        icon_url: https://avatars1.githubusercontent.com/u/7809479?v=3&s=200
+        text: |
+           >>> Daily lighthouse tests have failed.

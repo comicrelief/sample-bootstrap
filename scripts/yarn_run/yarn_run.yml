@@ -8,7 +8,7 @@ image_resource:
 inputs:
   - name: repository
     path: repository
-  - name: bootstrap
+  - name: build-tools
     path: build-tools
 
 caches:

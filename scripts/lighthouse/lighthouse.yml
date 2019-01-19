@@ -3,7 +3,7 @@ platform: linux
 
 image_resource:
   type: docker-image
-  source: {repository: comicrelief/php-drupal, tag: "latest"}
+  source: {repository: comicrelief/lighthouse, tag: "latest"}
 
 inputs:
   - name: repository
@@ -13,18 +13,18 @@ inputs:
 
 caches:
   - path: build-tools/node_modules
-  - path: repository/node_modules
 
 params:
   AWS_ACCESS_KEY_ID:
   AWS_SECRET_ACCESS_KEY:
+  SITE:
+  LIGHTHOUSE_BASE_URL:
   S3_BUCKET_PATH:
-  DIRECTORY:
 
 run:
   path: sh
   args:
    - -c
    - |
-     ./scripts/yarn_build_and_deploy/yarn_build_and_deploy.sh
+     ./scripts/lighthouse/lighthouse.sh
   dir: build-tools
