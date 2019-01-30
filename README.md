@@ -1,8 +1,25 @@
 # sample-bootstrap
-Sample Concourse bootstrap repository for use in blog post and sample application
+Sample Concourse CI bootstrap repository for use in blog post and sample pipeline.
 
 
 ## Getting Started
+
+
+### Bootstrapping Concourse
+
+Follow https://github.com/EngineerBetter/concourse-up to set up a Concourse instance on AWS.
+
+To set up a pipeline from scratch in an AWS account of choice (with AWS variables defined), run e.g.
+
+```
+concourse-up deploy --domain ci.sandbox.comicrelief.com ci
+```
+
+To clean it up afterwards, you can run
+
+```
+concourse-up destroy ci
+```
 
 ### Decrypt keys using git-crypt
 
