@@ -58,7 +58,7 @@ fly -t ci-sandbox login --team-name main --concourse-url https://ci.sandbox.comi
 sudo fly -t ci-sandbox sync
 ```
 
-### Deploy ([Pipeline](https://ci.sandbox.comicrelief.com/teams/main/pipelines/general))
+### Deploy Pipeline
 
 ```
 fly -t ci-sandbox set-pipeline -p general -c concourse/general.yml -l private/concourse/cci_private_vars.yml
