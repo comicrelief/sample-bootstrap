@@ -31,6 +31,19 @@ Please ask your administrator for the key file, and then run:
 git-crypt unlock KEY_FILE
 ```
 
+For sample purposes, you can recreate this file yourself and run `git-crypt` to encode contents of this file. The format of that file is something like this:
+
+```
+aws_default_region: eu-west-1
+aws_secondary_region: us-east-1
+aws_access_key: XXXXXXXXXXXXXXX
+aws_secret_key: 111111111111111111111111
+
+... other key / values ...
+```
+
+There are other (and better!) methods to handle credential management than git-crypt, and that do not involve storing credentials (albeit encrypted) in git. Have a look at https://concourse-ci.org/creds.html for integrating Vault, Credhub or SSM. Unfortunately, as of now, Concourse-up only supports Credhub [although SSM seems to be on the roadmap](https://github.com/EngineerBetter/concourse-up/issues/46).
+
 ### Get fly
 
 Go to https://concourse.ci/downloads.html and download `fly` and then run:
